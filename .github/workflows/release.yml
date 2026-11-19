@@ -96,8 +96,3 @@ jobs:
             3. Upload firmware (address 0x0) → Start
 
             ### esptool
-            ```bash
-            esptool.py --chip esp32s3 --port PORT --baud 460800 \
-              write_flash -z 0x0 ottoclaw-full-${{ github.ref_name }}-ai.bin
-            ```
-            PORT: `/dev/cu.usbmodem1101` (Mac) / `COM3` (Windows)
