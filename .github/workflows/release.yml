@@ -8,14 +8,11 @@ on:
 permissions:
   contents: write
 
-env:
-  IDF_VERSION: "v5.5.2"
-
 jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: espressif/idf:${{ env.IDF_VERSION }}
+      image: espressif/idf:v5.5.2
 
     steps:
       - name: Checkout
@@ -30,8 +27,8 @@ jobs:
       - name: Check secrets (AI)
         run: |
           BIN=build/ottoclaw.bin
-          ! strings "$BIN" | grep -qE 'sk-[a-f0-9]{20,}' || (echo "❌ API key leaked"; exit 1)
-          ! strings "$BIN" | grep -qE 'ding[a-z0-9]{10,}' || (echo "❌ DingTalk key leaked"; exit 1)
+          ! strings "$BIN" | grep -qE 'sk-[a-f0-9]{20,}' || (echo "API key leaked"; exit 1)
+          ! strings "$BIN" | grep -qE 'ding[a-z0-9]{10,}' || (echo "DingTalk key leaked"; exit 1)
 
       - name: Merge AI firmware
         run: |
@@ -61,8 +58,8 @@ jobs:
       - name: Check secrets (CAM519)
         run: |
           BIN=build/ottoclaw.bin
-          ! strings "$BIN" | grep -qE 'sk-[a-f0-9]{20,}' || (echo "❌ API key leaked"; exit 1)
-          ! strings "$BIN" | grep -qE 'ding[a-z0-9]{10,}' || (echo "❌ DingTalk key leaked"; exit 1)
+          ! strings "$BIN" | grep -qE 'sk-[a-f0-9]{20,}' || (echo "API key leaked"; exit 1)
+          ! strings "$BIN" | grep -qE 'ding[a-z0-9]{10,}' || (echo "DingTalk key leaked"; exit 1)
 
       - name: Merge CAM519 firmware
         run: |
@@ -88,15 +85,19 @@ jobs:
           body: |
             # OttoClaw ${{ github.ref_name }}
 
-            ## 板型选择
-            - **OttoRobot AI** → `ottoclaw-full-${{ github.ref_name }}-ai.bin`
-            - **OttoCam519** → `ottoclaw-full-${{ github.ref_name }}-cam519.bin`
+            ## Board selection
+            - **OttoRobot AI** (no camera) → `ottoclaw-full-${{ github.ref_name }}-ai.bin`
+            - **OttoCam519** (camera) → `ottoclaw-full-${{ github.ref_name }}-cam519.bin`
 
-            ## 烧录方式
-            ### 在线烧录
-            1. 打开 https://www.16302.com/localinit
-            2. 芯片选择：ESP系列 → 不限类型
-            3. 上传固件（地址 0x0）
-            4. 开始烧录
+            ## Flashing
+            ### Online
+            1. Open https://www.16302.com/localinit
+            2. Chip: ESP series → Any type
+            3. Upload firmware (address 0x0) → Start
 
             ### esptool
+            ```bash
+            esptool.py --chip esp32s3 --port PORT --baud 460800 \
+              write_flash -z 0x0 ottoclaw-full-${{ github.ref_name }}-ai.bin
+            ```
+            PORT: `/dev/cu.usbmodem1101` (Mac) / `COM3` (Windows)
